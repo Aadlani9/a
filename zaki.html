@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة المنتجات - زكرياء | Gestión de Productos - Zakaria</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- SheetJS for Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- خط Cairo من Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+      body {
+          background-color: #e9ecef;
+          padding: 0;
+          margin: 0;
+          font-family: 'Cairo', Arial, sans-serif;
+          margin-bottom: 200px;
+      }
+      .navbar {
+          background-color: #007bff;
+          padding: 10px;
+      }
+      .navbar-brand {
+          color: #ffffff !important;
+          font-weight: bold;
+          font-size: 1.5rem;
+      }
+      h1 {
+          color: #2c3e50;
+          margin-top: 20px;
+      }
+      .card {
+          background-color: #ffffff;
+          border: 1px solid #dee2e6;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
+      }
+      .form-label {
+          color: #495057;
+      }
+      .btn-primary {
+          background-color: #007bff;
+          border-color: #007bff;
+      }
+      .btn-primary:hover {
+          background-color: #0056b3;
+      }
+      .btn-warning {
+          background-color: #ffc107;
+          border-color: #ffc107;
+          width: 100%;
+          padding: 12px;
+          margin-bottom: 10px;
+      }
+      .btn-danger {
+          background-color: #dc3545;
+          border-color: #dc3545;
+          width: 100%;
+          padding: 12px;
+      }
+      .btn-success {
+          background-color: #28a745;
+          border-color: #28a745;
+      }
+      .btn-export {
+          background-color: #17a2b8;
+          border-color: #17a2b8;
+          margin: 0 10px;
+      }
+      .btn-delete-log {
+          background-color: #6c757d;
+          border-color: #6c757d;
+          padding: 5px 10px;
+      }
+      .table-container {
+          margin-top: 20px;
+          overflow-x: auto;
+          max-height: 600px; /* يعرض حوالي 7 عناصر مع السكرول */
+          overflow-y: auto; /* إضافة سكرول عمودي */
+      }
+      .table {
+          font-size: 1.1rem;
+          min-width: 1000px;
+          border-collapse: collapse;
+      }
+      .table thead {
+          background-color: #343a40;
+          color: #ffffff;
+          position: sticky; /* تثبيت رأس الجدول أثناء التمرير */
+          top: 0;
+          z-index: 1;
+      }
+      .table tfoot {
+          background-color: #f1f3f5;
+      }
+      .table th, .table td {
+          border: 1px solid #dee2e6;
+      }
+      .table td.product-name {
+          font-weight: bold;
+      }
+      .table td.selling-price {
+          font-weight: bold;
+          color: #2c3e50;
+      }
+      .table td.total-wholesale {
+          font-weight: 600;
+      }
+      .stats-card {
+          background-color: #f8f9fa;
+      }
+      .stats-card .list-group-item {
+          background-color: transparent;
+          color: #212529;
+          border-bottom: 1px solid #dee2e6;
+      }
+      .stats-card .list-group-item:last-child {
+          border-bottom: none;
+      }
+      .stats-card .list-group-item span {
+          font-weight: bold;
+          color: #28a745;
+      }
+      .highlight {
+          background-color: #d4edda;
+          padding: 5px 10px;
+          border-radius: 5px;
+      }
+      footer {
+          background-color: #1f61a3dd;
+          color: #ffffff;
+          text-align: center;
+          padding: 10px 0;
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+      }
+      .sales-table-container {
+          margin-top: 20px;
+          overflow-x: auto;
+          max-height: 400px; /* يعرض حوالي 7 عناصر مع السكرول */
+          overflow-y: auto; /* إضافة سكرول عمودي */
+      }
+      .sales-table {
+          font-size: 1rem;
+          width: 100%;
+          border-collapse: collapse;
+      }
+      .sales-table thead {
+          background-color: #343a40;
+          color: #ffffff;
+          position: sticky; /* تثبيت رأس الجدول أثناء التمرير */
+          top: 0;
+          z-index: 1;
+      }
+      .sales-summary-table {
+          margin-top: 20px;
+          font-size: 1rem;
+          width: 100%;
+          background-color: #f8f9fa;
+          border-collapse: collapse;
+      }
+      .sales-summary-table thead {
+          background-color: #6c757d;
+          color: #ffffff;
+      }
+      @media (max-width: 768px) {
+          .navbar-brand {
+              font-size: 1.2rem;
+          }
+          .card {
+              padding: 15px;
+          }
+          .table {
+              font-size: 0.95rem;
+          }
+      }
+      @media (min-width: 992px) {
+          .form-section {
+              display: flex;
+              justify-content: space-between;
+          }
+          .form-card {
+              width: 48%;
+          }
+          .stats-card {
+              width: 48%;
+          }
+      }
+  </style>
+</head>
+<body>
+  <!-- القائمة العلوية -->
+  <nav class="navbar">
+    <div class="container">
+      <a class="navbar-brand" href="#">Gestión de Productos - Zakaria</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 class="text-center mb-4">إدارة المنتجات</h1>
+
+    <!-- الإحصائيات ونموذج إضافة المنتج -->
+    <div class="form-section">
+      <!-- نموذج إدخال البيانات -->
+      <div class="card p-4 form-card">
+        <h5 class="card-title">إضافة منتج جديد</h5>
+        <form id="productForm">
+          <div class="mb-3">
+            <label for="productName" class="form-label">اسم المنتج</label>
+            <input type="text" class="form-control" id="productName" required>
+          </div>
+          <div class="mb-3">
+            <label for="wholesalePrice" class="form-label">ثمن الجملة (€)</label>
+            <input type="number" class="form-control" id="wholesalePrice" step="0.01" min="0.01" required>
+          </div>
+          <div class="mb-3">
+            <label for="quantity" class="form-label">عدد المنتجات</label>
+            <input type="number" class="form-control" id="quantity" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label for="sellingPrice" class="form-label">ثمن البيع (€)</label>
+            <input type="number" class="form-control" id="sellingPrice" step="0.01" min="0.01" required>
+          </div>
+          <button type="submit" class="btn btn-primary">إضافة المنتج</button>
+        </form>
+      </div>
+
+      <!-- الإحصائيات -->
+      <div class="card p-4 stats-card">
+        <h5 class="card-title">الإحصائيات</h5>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">عدد المنتجات: <span id="productCount">0</span></li>
+          <li class="list-group-item">مجموع الكمية: <span id="totalQuantity">0</span></li>
+          <li class="list-group-item">مجموع ثمن سلعة بالجملة: <span id="totalWholesale">0</span> €</li>
+          <li class="list-group-item">إجمالي هامش الربح: <span id="totalProfitStats">0</span> €</li>
+          <li class="list-group-item">إجمالي الأرباح المحققة: <span id="realizedProfit" style="color: #dc3545;">0</span> €</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- أزرار التصدير -->
+    <div class="text-center mb-4">
+      <button class="btn btn-export" onclick="exportToExcel()">تصدير إلى Excel</button>
+    </div>
+
+    <!-- جدول المنتجات -->
+    <div class="table-container">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>اسم المنتج</th>
+            <th>الكمية الأصلية</th>
+            <th>ثمن الجملة (€)</th>
+            <th>ثمن المجموع بالجملة (€)</th>
+            <th>الكمية المتبقية</th>
+            <th>ثمن البيع (€)</th>
+            <th>هامش الربح (واحد) (€)</th>
+            <th>الكمية المباعة</th>
+            <th>الربح الصافي (€)</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="productTableBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" class="text-end">مجموع الأرباح:</td>
+            <td class="highlight" id="totalRealizedProfit">0 €</td>
+            <td colspan="2"></td>
+          </tr>
+          <tr>
+            <td colspan="7" class="text-end">إجمالي هامش الربح:</td>
+            <td class="highlight" id="totalProfit">0 €</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- نموذج تسجيل المبيعات -->
+    <div class="card p-4">
+      <h5 class="card-title">تسجيل المبيعات</h5>
+      <form id="salesForm">
+        <div class="mb-3">
+          <label for="productSelect" class="form-label">اختر المنتج</label>
+          <select class="form-control" id="productSelect" required>
+            <option value="">-- اختر منتج --</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="soldQuantity" class="form-label">الكمية المباعة</label>
+          <input type="number" class="form-control" id="soldQuantity" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-success">تسجيل البيع</button>
+      </form>
+    </div>
+
+    <!-- جدول سجل المبيعات -->
+    <div class="sales-table-container">
+      <h5>سجل المبيعات</h5>
+      <table class="table table-striped sales-table">
+        <thead>
+          <tr>
+            <th>اسم المنتج</th>
+            <th>الكمية المباعة</th>
+            <th>التاريخ</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="salesLogBody"></tbody>
+      </table>
+      <!-- ملخص المبيعات -->
+      <h5>ملخص المبيعات</h5>
+      <table class="table table-striped sales-summary-table">
+        <thead>
+          <tr>
+            <th>اسم المنتج</th>
+            <th>عدد مرات البيع</th>
+            <th>إجمالي الكمية المباعة</th>
+          </tr>
+        </thead>
+        <tbody id="salesSummaryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- التذييل -->
+  <footer>
+    <p>© 2025 Aadlani</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let products = JSON.parse(localStorage.getItem('products')) || [];
+    let salesLog = JSON.parse(localStorage.getItem('salesLog')) || [];
+    let totalRealizedProfit = parseFloat(localStorage.getItem('totalRealizedProfit')) || 0;
+
+    // تنسيق التاريخ إلى YYYY-MM-DD
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "غير متوفر";
+      }
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // تحديث الجدول والإحصائيات
+    function updateTable() {
+      const tbody = document.getElementById('productTableBody');
+      const productSelect = document.getElementById('productSelect');
+      tbody.innerHTML = '';
+      productSelect.innerHTML = '<option value="">-- اختر منتج --</option>';
+      let totalProfit = 0;
+      let totalQuantity = 0;
+      let totalWholesale = 0;
+
+      if (products.length === 0 && salesLog.length === 0) {
+        totalRealizedProfit = 0;
+      }
+
+      const salesSummary = {};
+      salesLog.forEach(log => {
+        if (!salesSummary[log.productName]) {
+          salesSummary[log.productName] = { count: 0, totalSold: 0 };
+        }
+        salesSummary[log.productName].count += 1;
+        salesSummary[log.productName].totalSold += log.quantity;
+      });
+
+      products.forEach((product, index) => {
+        const unitProfit = product.sellingPrice - product.wholesalePrice;
+        const soldQuantity = salesSummary[product.name]?.totalSold || 0;
+        const remainingQuantity = product.quantity - soldQuantity;
+        const totalWholesalePrice = product.wholesalePrice * product.quantity;
+        const salesProfit = unitProfit * soldQuantity;
+        totalProfit += unitProfit * product.quantity;
+        totalQuantity += product.quantity;
+        totalWholesale += totalWholesalePrice;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="product-name">${product.name}</td>
+          <td>${product.quantity}</td>
+          <td>€ ${product.wholesalePrice.toFixed(2)}</td>
+          <td class="total-wholesale">€ ${totalWholesalePrice.toFixed(2)}</td>
+          <td>${remainingQuantity}</td>
+          <td class="selling-price">€ ${product.sellingPrice.toFixed(2)}</td>
+          <td>€ ${unitProfit.toFixed(2)}</td>
+          <td>${soldQuantity}</td>
+          <td>€ ${salesProfit.toFixed(2)}</td>
+          <td>
+            <button class="btn btn-warning" onclick="editProduct(${index})">تعديل</button>
+            <button class="btn btn-danger" onclick="deleteProduct(${index})">حذف</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = product.name;
+        productSelect.appendChild(option);
+      });
+
+      document.getElementById('productCount').textContent = products.length;
+      document.getElementById('totalQuantity').textContent = totalQuantity;
+      document.getElementById('totalWholesale').textContent = totalWholesale.toFixed(2);
+      document.getElementById('totalProfitStats').textContent = totalProfit.toFixed(2);
+      document.getElementById('realizedProfit').textContent = totalRealizedProfit.toFixed(2);
+      document.getElementById('totalProfit').textContent = totalProfit.toFixed(2) + " €";
+      document.getElementById('totalRealizedProfit').textContent = totalRealizedProfit.toFixed(2) + " €";
+
+      localStorage.setItem('products', JSON.stringify(products));
+      localStorage.setItem('totalRealizedProfit', totalRealizedProfit.toString());
+      updateSalesLog(salesSummary);
+    }
+
+    // تحديث سجل المبيعات وملخص المبيعات
+    function updateSalesLog(salesSummary) {
+      const salesLogBody = document.getElementById('salesLogBody');
+      const salesSummaryBody = document.getElementById('salesSummaryBody');
+      salesLogBody.innerHTML = '';
+      salesSummaryBody.innerHTML = '';
+
+      const reversedSalesLog = [...salesLog].reverse();
+      reversedSalesLog.forEach((log, index) => {
+        const originalIndex = salesLog.length - 1 - index;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${log.productName}</td>
+          <td>${log.quantity}</td>
+          <td>${formatDate(log.date)}</td>
+          <td><button class="btn btn-delete-log" onclick="deleteSalesLog(${originalIndex})">مسح</button></td>
+        `;
+        salesLogBody.appendChild(row);
+      });
+
+      const summaryArray = Object.entries(salesSummary).sort((a, b) => {
+        const lastSaleA = salesLog.filter(log => log.productName === a[0]).slice(-1)[0]?.date || 0;
+        const lastSaleB = salesLog.filter(log => log.productName === b[0]).slice(-1)[0]?.date || 0;
+        return new Date(lastSaleB) - new Date(lastSaleA);
+      });
+      summaryArray.forEach(([productName, summary]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${productName}</td>
+          <td>${summary.count}</td>
+          <td>${summary.totalSold}</td>
+        `;
+        salesSummaryBody.appendChild(row);
+      });
+
+      localStorage.setItem('salesLog', JSON.stringify(salesLog));
+    }
+
+    // إضافة منتج جديد مع التحقق وتنبيه
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const productName = document.getElementById('productName').value.trim();
+      const wholesalePrice = parseFloat(document.getElementById('wholesalePrice').value);
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const sellingPrice = parseFloat(document.getElementById('sellingPrice').value);
+
+      if (!productName) {
+        alert('يرجى إدخال اسم المنتج!');
+        return;
+      }
+      if (isNaN(wholesalePrice) || wholesalePrice <= 0) {
+        alert('ثمن الجملة يجب أن يكون رقمًا موجبًا أكبر من 0!');
+        return;
+      }
+      if (isNaN(quantity) || quantity <= 0) {
+        alert('عدد المنتجات يجب أن يكون رقمًا موجبًا أكبر من 0!');
+        return;
+      }
+      if (isNaN(sellingPrice) || sellingPrice <= 0) {
+        alert('ثمن البيع يجب أن يكون رقمًا موجبًا أكبر من 0!');
+        return;
+      }
+
+      const product = {
+        name: productName,
+        wholesalePrice: wholesalePrice,
+        quantity: quantity,
+        sellingPrice: sellingPrice
+      };
+      products.push(product);
+      updateTable();
+      this.reset();
+      alert(`تمت إضافة المنتج "${productName}" بنجاح!`);
+    });
+
+    // حذف منتج مع تأكيد وتنبيه
+    function deleteProduct(index) {
+      const productName = products[index].name;
+      if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+        products.splice(index, 1);
+        updateTable();
+        alert(`تم حذف المنتج "${productName}" بنجاح!`);
+      }
+    }
+
+    // تعديل منتج مع تأكيد وتنبيه
+    function editProduct(index) {
+      const productName = products[index].name;
+      if (confirm('هل أنت متأكد من تعديل هذا المنتج؟')) {
+        const product = products[index];
+        document.getElementById('productName').value = product.name;
+        document.getElementById('wholesalePrice').value = product.wholesalePrice;
+        document.getElementById('quantity').value = product.quantity;
+        document.getElementById('sellingPrice').value = product.sellingPrice;
+        products.splice(index, 1);
+        updateTable();
+        alert(`تم تحديد المنتج "${productName}" للتعديل! أدخل التغييرات واضغط "إضافة المنتج".`);
+      }
+    }
+
+    // تسجيل المبيعات مع التحقق وتنبيه
+    document.getElementById('salesForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const productIndex = parseInt(document.getElementById('productSelect').value);
+      const soldQuantity = parseInt(document.getElementById('soldQuantity').value);
+
+      if (productIndex < 0) {
+        alert('يرجى اختيار منتج!');
+        return;
+      }
+      if (isNaN(soldQuantity) || soldQuantity <= 0) {
+        alert('الكمية المباعة يجب أن تكون رقمًا موجبًا أكبر من 0!');
+        return;
+      }
+
+      const product = products[productIndex];
+      const soldSoFar = salesLog
+        .filter(log => log.productName === product.name)
+        .reduce((sum, log) => sum + log.quantity, 0);
+      const remainingQuantity = product.quantity - soldSoFar;
+
+      if (soldQuantity <= remainingQuantity) {
+        const unitProfit = product.sellingPrice - product.wholesalePrice;
+        totalRealizedProfit += unitProfit * soldQuantity;
+        const currentDate = new Date();
+        salesLog.push({
+          productName: product.name,
+          quantity: soldQuantity,
+          date: currentDate.toISOString()
+        });
+        updateTable();
+        this.reset();
+        alert(`تم تسجيل بيع ${soldQuantity} وحدة من "${product.name}" بنجاح!`);
+      } else {
+        alert('الكمية المباعة أكبر من الكمية المتبقية!');
+      }
+    });
+
+    // حذف سجل مبيعات مع تأكيد وتنبيه
+    function deleteSalesLog(index) {
+      const log = salesLog[index];
+      if (confirm('هل أنت متأكد من مسح هذا السجل؟')) {
+        const product = products.find(p => p.name === log.productName);
+        if (product) {
+          const unitProfit = product.sellingPrice - product.wholesalePrice;
+          totalRealizedProfit -= unitProfit * log.quantity;
+        }
+        salesLog.splice(index, 1);
+        updateTable();
+        alert(`تم مسح سجل بيع ${log.quantity} وحدة من "${log.productName}" بنجاح!`);
+      }
+    }
+
+    // تصدير إلى Excel
+    function exportToExcel() {
+      try {
+        const wb = XLSX.utils.book_new();
+
+        // الإحصائيات
+        const statsData = [
+          ["الإحصائيات"],
+          ["عدد المنتجات", document.getElementById('productCount').textContent],
+          ["مجموع الكمية", document.getElementById('totalQuantity').textContent],
+          ["مجموع ثمن سلعة بالجملة", document.getElementById('totalWholesale').textContent + " €"],
+          ["إجمالي هامش الربح", document.getElementById('totalProfitStats').textContent + " €"],
+          ["إجمالي الأرباح المحققة", document.getElementById('realizedProfit').textContent + " €"]
+        ];
+        const statsSheet = XLSX.utils.aoa_to_sheet(statsData);
+        XLSX.utils.book_append_sheet(wb, statsSheet, "الإحصائيات");
+
+        // قائمة المنتجات مع حساب totalProfit
+        const salesSummary = {};
+        salesLog.forEach(log => {
+          if (!salesSummary[log.productName]) {
+            salesSummary[log.productName] = { count: 0, totalSold: 0 };
+          }
+          salesSummary[log.productName].count += 1;
+          salesSummary[log.productName].totalSold += log.quantity;
+        });
+
+        let totalProfit = 0;
+        const productData = [
+          ["اسم المنتج", "الكمية الأصلية", "ثمن الجملة (€)", "الكمية المتبقية", "ثمن البيع (€)", "هامش الربح (واحد) (€)", "الكمية المباعة", "الربح الصافي (€)", "ثمن المجموع بالجملة (€)"],
+          ...products.map(p => {
+            const soldQuantity = salesSummary[p.name]?.totalSold || 0;
+            const remainingQuantity = p.quantity - soldQuantity;
+            const unitProfit = p.sellingPrice - p.wholesalePrice;
+            totalProfit += unitProfit * p.quantity;
+            return [
+              p.name,
+              p.quantity,
+              p.wholesalePrice.toFixed(2),
+              remainingQuantity,
+              p.sellingPrice.toFixed(2),
+              unitProfit.toFixed(2),
+              soldQuantity,
+              (unitProfit * soldQuantity).toFixed(2),
+              (p.wholesalePrice * p.quantity).toFixed(2)
+            ];
+          }),
+          ["", "", "", "", "", "", "مجموع الأرباح", totalRealizedProfit.toFixed(2) + " €"],
+          ["", "", "", "", "", "", "إجمالي هامش الربح", totalProfit.toFixed(2) + " €"]
+        ];
+        const productSheet = XLSX.utils.aoa_to_sheet(productData);
+        XLSX.utils.book_append_sheet(wb, productSheet, "المنتجات");
+
+        XLSX.writeFile(wb, "تقرير_المنتجات.xlsx");
+      } catch (error) {
+        console.error("خطأ أثناء تصدير الملف إلى Excel:", error);
+        alert("حدث خطأ أثناء تصدير البيانات إلى Excel. تحقق من وحدة التحكم لمزيد من التفاصيل.");
+      }
+    }
+
+    // تحديث الجدول عند التحميل
+    updateTable();
+  </script>
+</body>
+</html>
